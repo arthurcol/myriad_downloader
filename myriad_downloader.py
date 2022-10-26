@@ -6,6 +6,10 @@ import subprocess
 
 
 def syllabus_loader(yaml_path: str) -> Dict:
+    """
+    Load the parsed version of the syllabus.yml file ; created with yaml_parser.py
+    """
+
     try:
         with open(yaml_path, "r") as file:
             syllabus = yaml.load(file, Loader=yaml.Loader)
@@ -15,6 +19,10 @@ def syllabus_loader(yaml_path: str) -> Dict:
 
 
 def setup_checker() -> subprocess.CompletedProcess:
+    """
+    Check if the setup has been done correctly and needed exec are installed.
+    """
+
     script = """
 for program in curl tar git gh ; do
   if ! type "$program" &>/dev/null ; then
@@ -34,6 +42,10 @@ def challenge_downloader(
     github_name: str,
     is_student=False,
 ) -> subprocess.CompletedProcess:
+    """
+    Download a challenge given its path
+    """
+
     script = f"""
 mkdir -p ~/code/lewagon/{path} && cd $_
 if [ "$(ls -A .)" ] ; then
@@ -81,6 +93,10 @@ def paths_finder(path_code: str, syllabus: Dict) -> List:
 
 
 def get_varenv():
+    """
+    Get environment variables KITT_TOKEN, GH_USERNAME and DEFAULT_BATCH. If they do
+    not exist, will prompt the user to set them.
+    """
     if os.getenv("KITT_TOKEN") == None:
         token = input("Enter your KITT token")
         cmd = f"""
@@ -123,6 +139,7 @@ def get_varenv():
 
 
 def create_parser():
+
     parser = argparse.ArgumentParser(
         description="Helper to download challenges with Myriad", add_help=True
     )
@@ -151,7 +168,7 @@ if __name__ == "__main__":
     syllabus = syllabus_loader("short_syllabus.yml")
     parser = create_parser()
     args = parser.parse_args()
-    print(args)
+
     paths = paths_finder(
         args.challenge,
         syllabus=syllabus,
@@ -162,7 +179,6 @@ if __name__ == "__main__":
     else:
         kitt_token, gh_username, batch = get_varenv()
 
-    print(kitt_token, gh_username, batch)
     for challenge in paths:
         challenge_downloader(
             token=kitt_token,
