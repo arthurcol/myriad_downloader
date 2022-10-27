@@ -1,6 +1,11 @@
 import yaml
+import os
+import pathlib
 
-with open("syllabus.yml", "r") as file:
+HERE = pathlib.Path(__file__).parent
+# The text of the README file
+SYLLABUS_PATH = os.path.join(HERE, "syllabus.yml")
+with open(SYLLABUS_PATH, "r") as file:
     syllabus = yaml.load(file, Loader=yaml.Loader)
 
 paths = {}
@@ -12,6 +17,7 @@ for module in syllabus["default"]["modules"].values():
     paths[n_path] = dict(name=name, full_path=full_path, days=dict())
 
 for day in syllabus["default"]["days"].values():
+    print("The following syllabus has been downloaded :")
     print(day["path"])
     if day["path"][:2] == "00":
         n_module = "00"
@@ -27,5 +33,5 @@ for day in syllabus["default"]["days"].values():
     paths[n_module]["days"][n_day] = dict(daily_path=full_path, exercises=exercises)
 
 
-with open("short_syllabus.yml", "w") as file:
+with open(os.path.join(HERE, "short_syllabus.yml"), "w") as file:
     yaml.dump(paths, file)

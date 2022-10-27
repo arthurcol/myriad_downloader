@@ -1,20 +1,25 @@
 from typing import Dict, List
 import yaml
 import os
+import sys
 import argparse
 import subprocess
+import pathlib
 
 
-def syllabus_loader(yaml_path: str) -> Dict:
+def syllabus_loader() -> Dict:
     """
     Load the parsed version of the syllabus.yml file ; created with yaml_parser.py
     """
+    HERE = pathlib.Path(__file__).parent
+    SYLLABUS_PATH = os.path.join(HERE, "short_syllabus.yml")
 
     try:
-        with open(yaml_path, "r") as file:
+        with open(SYLLABUS_PATH, "r") as file:
             syllabus = yaml.load(file, Loader=yaml.Loader)
     except FileNotFoundError:
         print("Run yaml_parser.py first")
+        # return sys.exit()
     return syllabus
 
 
@@ -109,18 +114,18 @@ def get_varenv():
     else:
         token = os.getenv("KITT_TOKEN")
     if os.getenv("GH_USERNAME") == None:
-        cmd = f"""
-        echo '# GitHub Username' >> ~/.zshrc
-        echo 'export GH_USERNAME=$(gh api 'https://api.github.com/user' | jq .login)' >> ~/.zshrc
-        export GH_USERNAME=$(gh api 'https://api.github.com/user' | jq .login)
-        """
-        subprocess.run(cmd, shell=True, check=True)
         gh_username = subprocess.run(
             "gh api 'https://api.github.com/user' | jq .login",
             capture_output=True,
             shell=True,
             text=True,
         ).stdout
+        cmd = f"""
+        echo '# GitHub Username' >> ~/.zshrc
+        echo 'export GH_USERNAME={gh_username} >> ~/.zshrc
+        export GH_USERNAME=${gh_username}
+        """
+        subprocess.run(cmd, shell=True, check=True)
         print("Restart zsh for these variables to be taken into account next time.")
     else:
         gh_username = os.getenv("GH_USERNAME")
@@ -157,17 +162,32 @@ def create_parser():
     parser.add_argument(
         "--student",
         action="store_true",
-        help="Create a GitHub repository and name the repo the correct way for Kitt webhooks to work.",
+        help="Create a GitHub repository with data-xxx name and add a webhook for KITT.",
+    )
+    parser.add_argument(
+        "--syllabus_update",
+        action="store_true",
+        help="Update the syllabus",
     )
 
     return parser
 
 
-if __name__ == "__main__":
+def update_syllabus() -> subprocess.CompletedProcess:
+    script_path = os.path.join(
+        os.path.dirname(pathlib.Path(__file__).parent), "scripts/download_syllabus.sh"
+    )
+    subprocess.run(["/bin/bash", script_path])
+
+
+def main():
     setup_checker()
-    syllabus = syllabus_loader("short_syllabus.yml")
     parser = create_parser()
     args = parser.parse_args()
+    if args.syllabus_update:
+        update_syllabus()
+    # The directory containing this file
+    syllabus = syllabus_loader()
 
     paths = paths_finder(
         args.challenge,
