@@ -17,7 +17,6 @@ for day in syllabus["default"]["days"].values():
         n_module = "00"
         n_day = "00"
     else:
-
         n_module = day["path"].split("/")[0][:2]
         n_day = day["path"].split("/")[1][:2]
     full_path = day["path"]

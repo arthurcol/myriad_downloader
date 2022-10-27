@@ -22,4 +22,4 @@ To download a full module for your default batch as a student:
 ```bash
 python myriad_downloader.py 05 --student
 ```
-In addition to downloading the challenges, it will also create github repositories in your GitHub correctly named for KITT webhooks to work.
+In addition to downloading the challenges, it will also create github repositories in your GitHub with a webhook for KITT. __WIP__ : only create a repo on GitHub for now.
