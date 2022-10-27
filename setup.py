@@ -27,4 +27,7 @@ setup(
 script_path = os.path.join(
     pathlib.Path(__file__).parent, "scripts/download_syllabus.sh"
 )
-subprocess.run(["/bin/bash", script_path])
+subprocess.run(
+    ["/bin/bash", script_path],
+    env={"PARSER_PATH": "myriadloader", **os.environ},
+)

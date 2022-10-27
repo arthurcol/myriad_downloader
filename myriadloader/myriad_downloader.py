@@ -103,14 +103,14 @@ def get_varenv():
     not exist, will prompt the user to set them.
     """
     if os.getenv("KITT_TOKEN") == None:
-        token = input("Enter your KITT token")
+        token = input("Enter your KITT token\n")
         cmd = f"""
         echo '# LeWagon Kitt token to download Myriad challenges' >> ~/.zshrc
         echo 'export KITT_TOKEN="{token}"' >> ~/.zshrc
         export KITT_TOKEN="{token}"
         """
         subprocess.run(cmd, shell=True, check=True)
-        print("Restart zsh for these variables to be taken into account next time.")
+        print("Saved. Restart zsh to avoid this prompt next time.")
     else:
         token = os.getenv("KITT_TOKEN")
     if os.getenv("GH_USERNAME") == None:
@@ -122,22 +122,22 @@ def get_varenv():
         ).stdout
         cmd = f"""
         echo '# GitHub Username' >> ~/.zshrc
-        echo 'export GH_USERNAME={gh_username} >> ~/.zshrc
+        echo 'export GH_USERNAME={gh_username}' >> ~/.zshrc
         export GH_USERNAME=${gh_username}
         """
         subprocess.run(cmd, shell=True, check=True)
-        print("Restart zsh for these variables to be taken into account next time.")
+        print("GitHub username saved. Restart zsh to avoid this prompt next time.")
     else:
         gh_username = os.getenv("GH_USERNAME")
     if os.getenv("DEFAULT_BATCH") == None:
-        batch = input("Enter the batch number to use by default")
+        batch = input("Enter the batch number to use by default\n")
         cmd = f"""
         echo '# LeWagon batch number to use to download Myriad challenges' >> ~/.zshrc
         echo 'export DEFAULT_BATCH="{batch}"' >> ~/.zshrc
         export DEFAULT_BATCH="{batch}"
         """
         subprocess.run(cmd, shell=True, check=True)
-        print("Restart zsh for these variables to be taken into account next time.")
+        print("Saved. Restart zsh to avoid this prompt next time.")
     else:
         batch = os.getenv("DEFAULT_BATCH")
     return token, gh_username, batch
@@ -177,22 +177,30 @@ def update_syllabus() -> subprocess.CompletedProcess:
     script_path = os.path.join(
         os.path.dirname(pathlib.Path(__file__).parent), "scripts/download_syllabus.sh"
     )
-    subprocess.run(["/bin/bash", script_path])
+    parser_path = pathlib.Path(__file__).parent
+    subprocess.run(
+        ["/bin/bash", script_path], env={"PARSER_PATH": parser_path, **os.environ}
+    )
 
 
 def main():
+    """
+    Function to be used as CLI `myriadloader`
+    """
     setup_checker()
+
     parser = create_parser()
     args = parser.parse_args()
+
     if args.syllabus_update:
         update_syllabus()
-    # The directory containing this file
     syllabus = syllabus_loader()
 
     paths = paths_finder(
         args.challenge,
         syllabus=syllabus,
     )
+
     if args.batch:
         kitt_token, gh_username, _ = get_varenv()
         batch = args.batch

@@ -16,8 +16,8 @@ for module in syllabus["default"]["modules"].values():
     name = module["name"]
     paths[n_path] = dict(name=name, full_path=full_path, days=dict())
 
+print("The following syllabus has been downloaded :")
 for day in syllabus["default"]["days"].values():
-    print("The following syllabus has been downloaded :")
     print(day["path"])
     if day["path"][:2] == "00":
         n_module = "00"
