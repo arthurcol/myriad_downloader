@@ -1,5 +1,5 @@
 import pathlib
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 import subprocess
 
@@ -8,6 +8,10 @@ HERE = pathlib.Path(__file__).parent
 
 # The text of the README file
 README = (HERE / "README.md").read_text()
+
+with open("requirements.txt") as f:
+    content = f.readlines()
+requirements = [x.strip() for x in content if "git+" not in x]
 
 
 setup(
@@ -18,6 +22,8 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/arthurcol/myriad_downloader",
     author="Arthur Collard",
+    packages=find_packages(),
+    install_requires=requirements,
     entry_points={
         "console_scripts": ["myriadloader = myriadloader.myriad_downloader:main"]
     },
