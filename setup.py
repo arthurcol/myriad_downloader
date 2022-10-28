@@ -28,6 +28,7 @@ setup(
         "console_scripts": ["myriadloader = myriadloader.myriad_downloader:main"]
     },
     zip_safe=False,
+    data_files=[("scripts", "scripts/")],
 )
 
 
