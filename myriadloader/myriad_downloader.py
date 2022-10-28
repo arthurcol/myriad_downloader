@@ -28,7 +28,7 @@ def setup_checker() -> subprocess.CompletedProcess:
     Check setup is done and needed exec and environment variables are installed
     """
     script_path = os.path.join(
-        os.path.dirname(pathlib.Path(__file__).parent), "scripts/setup_checker.sh"
+        os.path.dirname(pathlib.Path(__file__)), "scripts/setup_checker.sh"
     )
     return subprocess.run(["/bin/bash", script_path])
 
@@ -39,7 +39,7 @@ def kitt_challenge_downloader(
 ) -> subprocess.CompletedProcess:
 
     script_path = os.path.join(
-        os.path.dirname(pathlib.Path(__file__).parent),
+        os.path.dirname(pathlib.Path(__file__)),
         "scripts/challenge_downloader.sh",
     )
     env = {"CHA_PATH": path, **os.environ}
@@ -67,7 +67,7 @@ def set_varenv() -> subprocess.CompletedProcess:
     Set environment variables KITT_TOKEN, GH_USERNAME and DEFAULT_BATCH.
     """
     script_path = os.path.join(
-        os.path.dirname(pathlib.Path(__file__).parent), "scripts/set_varenv.sh"
+        os.path.dirname(pathlib.Path(__file__)), "scripts/set_varenv.sh"
     )
     subprocess.run(["/bin/bash", script_path])
     subprocess.run("/bin/zsh")
@@ -112,7 +112,7 @@ def create_parser():
 
 def update_syllabus() -> subprocess.CompletedProcess:
     script_path = os.path.join(
-        os.path.dirname(pathlib.Path(__file__).parent), "scripts/download_syllabus.sh"
+        os.path.dirname(pathlib.Path(__file__)), "scripts/download_syllabus.sh"
     )
     parser_path = pathlib.Path(__file__).parent
     subprocess.run(
