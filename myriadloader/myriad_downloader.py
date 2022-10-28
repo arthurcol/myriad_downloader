@@ -25,62 +25,27 @@ def syllabus_loader() -> Dict:
 
 def setup_checker() -> subprocess.CompletedProcess:
     """
-    Check if the setup has been done correctly and needed exec are installed.
+    Check setup is done and needed exec and environment variables are installed
     """
-
-    script = """
-for program in curl tar git gh ; do
-  if ! type "$program" &>/dev/null ; then
-    echo "$program" is not installed. Please review your setup: https://github.com/lewagon/setup#in-english
-    exit 1
-fi
-done
-    """
-    subprocess.run(script, shell=True, check=True, executable="/bin/bash")
+    script_path = os.path.join(
+        os.path.dirname(pathlib.Path(__file__).parent), "scripts/setup_checker.sh"
+    )
+    return subprocess.run(["/bin/bash", script_path])
 
 
-def challenge_downloader(
-    token: str,
-    gh_username: str,
-    batch: str,
+def kitt_challenge_downloader(
     path: str,
-    github_name: str,
-    is_student=False,
+    batch: str = None,
 ) -> subprocess.CompletedProcess:
-    """
-    Download a challenge given its path
-    """
 
-    script = f"""
-mkdir -p ~/code/lewagon/{path} && cd $_
-if [ "$(ls -A .)" ] ; then
-  echo "$(pwd)" folder is not empty. Overwrite existing challenge ? [Y/n]
-  read input
-  if [[ $input == "Y" || $input == "y" ]]; then
-    curl --silent -L -H "Authorization: Token {token}" "https://kitt.lewagon.com/camps/{batch}/challenges/download?gh={gh_username}&path={path.replace('/','%2F')}" |tar -xz --strip 1
-    echo "✅ {path} downloaded"
-  else
-    echo "❌ Challenge not downloaded"
-    exit 0
-  fi
-else
-  curl --silent -L -H "Authorization: Token {token}" "https://kitt.lewagon.com/camps/{batch}/challenges/download?gh={gh_username}&path={path.replace('/','%2F')}" | tar -xz --strip 1
-  echo "✅ {path} downloaded"
-fi
-    """
-    if is_student:
-        script += f"""
-
-git init
-gh repo create data-{github_name} --private --source=.
-
-git add . && git commit -m 'Initiate challenge'
-if ! [ "$(git remote)" ] ; then
-  git remote add origin git@github.com:{gh_username}/data-{github_name}.git
-fi
-        """
-
-    subprocess.run(script, shell=True, check=True, executable="/bin/bash")
+    script_path = os.path.join(
+        os.path.dirname(pathlib.Path(__file__).parent),
+        "scripts/challenge_downloader.sh",
+    )
+    env = {"CHA_PATH": path, **os.environ}
+    if batch:
+        env["DEFAULT_BATCH"] = batch
+    subprocess.run(["/bin/bash", script_path], env=env)
 
 
 def paths_finder(path_code: str, syllabus: Dict) -> List:
@@ -97,50 +62,15 @@ def paths_finder(path_code: str, syllabus: Dict) -> List:
     return paths
 
 
-def get_varenv():
+def set_varenv() -> subprocess.CompletedProcess:
     """
-    Get environment variables KITT_TOKEN, GH_USERNAME and DEFAULT_BATCH. If they do
-    not exist, will prompt the user to set them.
+    Set environment variables KITT_TOKEN, GH_USERNAME and DEFAULT_BATCH.
     """
-    if os.getenv("KITT_TOKEN") == None:
-        token = input("Enter your KITT token\n")
-        cmd = f"""
-        echo '# LeWagon Kitt token to download Myriad challenges' >> ~/.zshrc
-        echo 'export KITT_TOKEN="{token}"' >> ~/.zshrc
-        export KITT_TOKEN="{token}"
-        """
-        subprocess.run(cmd, shell=True, check=True)
-        print("Saved. Restart zsh to avoid this prompt next time.")
-    else:
-        token = os.getenv("KITT_TOKEN")
-    if os.getenv("GH_USERNAME") == None:
-        gh_username = subprocess.run(
-            "gh api 'https://api.github.com/user' | jq .login",
-            capture_output=True,
-            shell=True,
-            text=True,
-        ).stdout
-        cmd = f"""
-        echo '# GitHub Username' >> ~/.zshrc
-        echo 'export GH_USERNAME={gh_username}' >> ~/.zshrc
-        export GH_USERNAME=${gh_username}
-        """
-        subprocess.run(cmd, shell=True, check=True)
-        print("GitHub username saved. Restart zsh to avoid this prompt next time.")
-    else:
-        gh_username = os.getenv("GH_USERNAME")
-    if os.getenv("DEFAULT_BATCH") == None:
-        batch = input("Enter the batch number to use by default\n")
-        cmd = f"""
-        echo '# LeWagon batch number to use to download Myriad challenges' >> ~/.zshrc
-        echo 'export DEFAULT_BATCH="{batch}"' >> ~/.zshrc
-        export DEFAULT_BATCH="{batch}"
-        """
-        subprocess.run(cmd, shell=True, check=True)
-        print("Saved. Restart zsh to avoid this prompt next time.")
-    else:
-        batch = os.getenv("DEFAULT_BATCH")
-    return token, gh_username, batch
+    script_path = os.path.join(
+        os.path.dirname(pathlib.Path(__file__).parent), "scripts/set_varenv.sh"
+    )
+    subprocess.run(["/bin/bash", script_path])
+    subprocess.run("/bin/zsh")
 
 
 def create_parser():
@@ -148,14 +78,16 @@ def create_parser():
     parser = argparse.ArgumentParser(
         description="Helper to download challenges with Myriad", add_help=True
     )
-    parser.add_argument(
-        "challenge",
-        metavar="challenges_path_code",
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "--challenge",
+        metavar="path_code",
         type=str,
         help="Path of the challenges to download. Format : xx-yy or xx, with x being module number and y day number.",
     )
     parser.add_argument(
         "--batch",
+        metavar="batch_number",
         action="store",
         help="Batch number. If not provided will use your default batch number.",
     )
@@ -168,6 +100,11 @@ def create_parser():
         "--syllabus_update",
         action="store_true",
         help="Update the syllabus",
+    )
+    group.add_argument(
+        "--auth",
+        action="store_true",
+        help="Saving authentication variables",
     )
 
     return parser
@@ -187,10 +124,16 @@ def main():
     """
     Function to be used as CLI `myriadloader`
     """
-    setup_checker()
 
     parser = create_parser()
     args = parser.parse_args()
+
+    if args.auth:
+        set_varenv()
+
+    result = setup_checker()
+    if result.returncode != 0:
+        sys.exit()
 
     if args.syllabus_update:
         update_syllabus()
@@ -201,18 +144,8 @@ def main():
         syllabus=syllabus,
     )
 
-    if args.batch:
-        kitt_token, gh_username, _ = get_varenv()
-        batch = args.batch
-    else:
-        kitt_token, gh_username, batch = get_varenv()
-
     for challenge in paths:
-        challenge_downloader(
-            token=kitt_token,
-            gh_username=gh_username,
-            batch=batch,
+        kitt_challenge_downloader(
+            batch=args.batch,
             path=challenge["path"],
-            github_name=challenge["github_name"],
-            is_student=args.student,
         )

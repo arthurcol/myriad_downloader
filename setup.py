@@ -24,6 +24,8 @@ setup(
     zip_safe=False,
 )
 
+
+# downloading syllabus and executing parser
 script_path = os.path.join(
     pathlib.Path(__file__).parent, "scripts/download_syllabus.sh"
 )

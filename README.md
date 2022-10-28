@@ -8,24 +8,22 @@ pip install git+https://github.com/arthurcol/myriad_downloader.git
 ```
 
 ## Usage
-First time you run the script, you will be asked to enter your Kitt Token and the batch number you want to use by default.
-For this not to be prompted again, restart your zsh (your `.zshrc` has been appended with these variables)
+You will need to first run
+```bash
+myriadloader --auth
+```
 
 To download a specific day for batch 1002:
 ```bash
-myriadloader 05-01 --batch 1002
+myriadloader --challenge 05-01 --batch 1002
 ```
 
 To download a full module for your default batch:
 ```bash
-myriadloader 05
+myriadloader --challenge 05
 ```
 
-To download a full module for your default batch as a student:
-```bash
-python myriad_downloader.py 05 --student
-```
-In addition to downloading the challenges, it will also create github repositories in your GitHub with a webhook for KITT. __WIP__ : only create a repo on GitHub for now.
+If you are running myriadloader as a student, it will also create github repositories in your GitHub with a webhook for KITT.
 
 If the syllabus is updated and you want to take those changes into account:
 ```bash
