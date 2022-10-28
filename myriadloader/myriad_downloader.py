@@ -139,10 +139,16 @@ def main():
         update_syllabus()
     syllabus = syllabus_loader()
 
-    paths = paths_finder(
-        args.challenge,
-        syllabus=syllabus,
-    )
+    try:
+        paths = paths_finder(
+            args.challenge,
+            syllabus=syllabus,
+        )
+    except KeyError:
+        print(
+            "This day or module does not exist. Please check your path code.\nShould be formatted as : xx-yy or xx, with x being module number and y day number."
+        )
+        sys.exit(1)
 
     for challenge in paths:
         kitt_challenge_downloader(
