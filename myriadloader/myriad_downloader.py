@@ -20,7 +20,9 @@ def syllabus_loader() -> Dict:
     except FileNotFoundError:
         print("Fetching syllabus first...")
         update_syllabus()
-        syllabus_loader()
+        with open(SYLLABUS_PATH, "r") as file:
+            syllabus = yaml.load(file, Loader=yaml.Loader)
+
     return syllabus
 
 
