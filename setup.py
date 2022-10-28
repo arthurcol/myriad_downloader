@@ -28,7 +28,12 @@ setup(
         "console_scripts": ["myriadloader = myriadloader.myriad_downloader:main"]
     },
     zip_safe=False,
-    data_files=[("scripts", "scripts/")],
+    data_files=[
+        ("scripts", "scripts/set_varenv.sh"),
+        ("scripts", "scripts/setup_checker.sh"),
+        ("scripts", "scripts/download_syllabus.sh"),
+        ("scripts", "scripts/challenge_downloader.sh"),
+    ],
 )
 
 
