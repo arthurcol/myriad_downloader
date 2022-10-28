@@ -18,8 +18,9 @@ def syllabus_loader() -> Dict:
         with open(SYLLABUS_PATH, "r") as file:
             syllabus = yaml.load(file, Loader=yaml.Loader)
     except FileNotFoundError:
-        print("Run yaml_parser.py first")
-        sys.exit()
+        print("Fetching syllabus first...")
+        update_syllabus()
+        syllabus_loader()
     return syllabus
 
 
